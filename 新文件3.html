@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小组学习成果展示看板 - 宣纸版</title>
+    <style>
+        :root {
+            /* 核心：宣纸黄色调 */
+            --xuan-paper: #FCF9F2;      /* 新鲜宣纸色 */
+            --xuan-aged: #F2EADA;       /* 陈年宣纸色 */
+            --ancient-orange: #b9967f;  /* 朱砂强调色 */
+            --ink-color: #3e2723;       /* 墨色字体 */
+            --border-ink: rgba(62, 39, 35, 0.15); /* 极淡的墨线边框 */
+            
+            --total-height: 90px;
+            --sub-height: 45px;
+        }
+
+        body {
+            font-family: "STKaiti", "华文楷体", "PingFang SC", serif;
+            /* 页面大背景模拟深色木质桌面 */
+            background-color: #e5e0d5; 
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            color: var(--ink-color);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--ancient-orange);
+            margin-bottom: 30px;
+            letter-spacing: 5px;
+            font-weight: bold;
+            /* 标题装饰线 */
+            
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; 
+            /* 表格背景设为宣纸色 */
+            background-color: var(--xuan-paper);
+            /* 整体边框模拟印章框线 */
+            border: 2px solid var(--ancient-orange);
+            /* 添加微弱的纸张阴影 */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .col-group { width: 15%; }
+        .col-item  { width: 12.5%; }
+        .col-eval  { width: 20%; }
+
+        /* 内部边框：模拟宣纸折痕，非常细 */
+        th, td {
+            border: 1px solid var(--border-ink); 
+            text-align: center;
+            vertical-align: middle;
+            padding: 0;
+        }
+
+        thead {
+            /* 表头采用朱砂红，增加古风感 */
+            background-color: var(--ancient-orange);
+            color: var(--xuan-paper);
+        }
+
+        th { 
+            font-weight: 600; 
+            user-select: none;
+            letter-spacing: 2px;
+        }
+
+        /* 小标题（读悟思讲）点击样式 */
+        .item-header {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .item-header:hover {
+            background-color: #e67e22;
+        }
+
+        #eval-header { cursor: pointer; }
+
+        .height-main { height: var(--total-height); }
+        .height-sub { height: var(--sub-height); }
+        tbody td { height: var(--total-height); }
+
+        /* 交互反馈 */
+        .interactive-cell { cursor: pointer; transition: background 0.2s; }
+        
+        /* 关键：使用宣纸陈色作为隔行变色 */
+        tbody tr:nth-child(even) { background-color: var(--xuan-aged); }
+        
+        /* 悬停反馈采用琥珀色 */
+        tbody tr:hover { background-color: rgba(230, 126, 34, 0.05); }
+
+        .medal-img {
+            height: 55px;
+            width: auto;
+            /* 增加一点对比度，让勋章在宣纸上更显眼 */
+            filter: sepia(0.2) contrast(1.1); 
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .eval-img {
+            height: 95px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .retry-text {
+            color: #8d6e63;
+            font-size: 1.95em;
+            font-weight: bold;
+            opacity: 0.7;
+        }
+
+        @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>文化寻访记者团活动表现评价表</h2>
+    <table>
+        <thead>
+            <tr>
+                <th rowspan="2" class="col-group height-main">小组名称</th>
+                <th colspan="4" class="height-sub">活动内容 </th>
+                <th rowspan="2" id="eval-header" class="col-eval height-main">活动评价</th>
+            </tr>
+            <tr>
+                <th class="height-sub col-item item-header" data-col="1">读</th>
+                <th class="height-sub col-item item-header" data-col="2">悟</th>
+                <th class="height-sub col-item item-header" data-col="3">思</th>
+                <th class="height-sub col-item item-header" data-col="4">讲</th>
+            </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+    </table>
+</div>
+
+<script>
+    const columnImages = {
+        1: "https://test.fukit.cn/autoupload/f/Z2_y8uxWepulUrDWcMTSorKXl_QqVl-bpSwqP4fJO68/20260404/59dz/2064X2030/QQ%E5%9B%BE%E7%89%8720260404145241.png/webp",
+        2: "https://test.fukit.cn/autoupload/f/Z2_y8uxWepulUrDWcMTSorKXl_QqVl-bpSwqP4fJO68/20260404/ouYf/2064X2030/QQ%E5%9B%BE%E7%89%8720260404145259.png/webp",
+        3: "https://test.fukit.cn/autoupload/f/Z2_y8uxWepulUrDWcMTSorKXl_QqVl-bpSwqP4fJO68/20260404/ZShp/2064X2030/QQ%E5%9B%BE%E7%89%8720260404145254.png/webp",
+        4: "https://test.fukit.cn/autoupload/f/Z2_y8uxWepulUrDWcMTSorKXl_QqVl-bpSwqP4fJO68/20260404/WMuh/2064X2030/QQ%E5%9B%BE%E7%89%8720260404145304.png/webp"
+    };
+
+    const evalImages = {
+        excellent: "https://test.fukit.cn/autoupload/fr/mSpaGI3pi14-hUHSpXwRK9QsAZsNtWRLDxDp3gHfqRayl5f0KlZfm6UsKj-HyTuv/20260404/D76S/3025X1386/QQ%E5%9B%BE%E7%89%8720260404145342.png/webp"
+    };
+
+    const groupNames = ["第一组", "第二组", "第三组", "第四组", "第五组", "第六组", "第七组", "第八组", "第九组", "第十组", "第十一组", "第十二组", "第十三组"];
+    const tbody = document.getElementById('table-body');
+
+    groupNames.forEach(name => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="col-group"><strong>${name}</strong></td>
+            <td class="interactive-cell col-item" data-col="1"></td>
+            <td class="interactive-cell col-item" data-col="2"></td>
+            <td class="interactive-cell col-item" data-col="3"></td>
+            <td class="interactive-cell col-item" data-col="4"></td>
+            <td class="evaluation-cell col-eval"></td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    document.querySelectorAll('.item-header').forEach(header => {
+        header.addEventListener('click', function() {
+            const colIdx = this.getAttribute('data-col');
+            const targetCells = tbody.querySelectorAll(`.interactive-cell[data-col="${colIdx}"]`);
+            targetCells.forEach(cell => {
+                if (!cell.querySelector('.medal-img')) {
+                    cell.innerHTML = `<img src="${columnImages[colIdx]}" class="medal-img">`;
+                }
+            });
+        });
+    });
+
+    let clickTimer = null;
+    tbody.addEventListener('click', function(e) {
+        const cell = e.target.closest('td');
+        if (!cell || !cell.classList.contains('interactive-cell')) return;
+        if (clickTimer) return;
+        clickTimer = setTimeout(() => {
+            const colIdx = cell.getAttribute('data-col');
+            cell.innerHTML = `<img src="${columnImages[colIdx]}" class="medal-img">`;
+            clickTimer = null;
+        }, 220);
+    });
+
+    tbody.addEventListener('dblclick', function(e) {
+        const cell = e.target.closest('td');
+        if (cell && cell.classList.contains('interactive-cell')) {
+            clearTimeout(clickTimer);
+            clickTimer = null;
+            cell.innerHTML = '';
+        }
+    });
+
+    document.getElementById('eval-header').addEventListener('click', function() {
+        tbody.querySelectorAll('tr').forEach(row => {
+            const medalsCount = row.querySelectorAll('.medal-img').length;
+            const evalCell = row.querySelector('.evaluation-cell');
+            evalCell.innerHTML = ''; 
+            if (medalsCount === 4) {
+                evalCell.innerHTML = `<img src="${evalImages.excellent}" class="eval-img">`;
+            } else {
+                evalCell.innerHTML = `<span class="retry-text">再接再厉！</span>`;
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
